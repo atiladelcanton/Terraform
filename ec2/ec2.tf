@@ -12,11 +12,11 @@ resource "aws_instance" "server" {
   instance_type = var.instance_type
   user_data     = <<-EOF
     !#/bin/bash
-    apt-get update
-    apt-get install apache2 -y
-    systemctl start apache2
-    systemctl enable apache2
-    echo -e "<h1> Deployed by Terraform</h1><p>You're on host: $(hostname)" > /var/www/html/index.html
+    sudo apt update
+    sudo apt install nginx -y
+    sudo ufw app list
+    sudo ufw allow 'Nginx HTTP'
+    sudo systemctl enable nginx
   EOF
   tags = {
     Name        = var.name
