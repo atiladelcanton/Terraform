@@ -7,27 +7,28 @@ terraform {
   }
 }
 variable "api_token" {
-  default = "dop_v1_c7de7dfe07942616cd3a074ab7edfa91de66bde098af4266385a4672298bd93c"
+  default = "dop_v1_13268cec17b3db934f476a0274d8e1a36b87b11655b104675d0716874e03e15e"
 }
 variable "pvt_key" {
-  default = "/home/atila.rampazo/.ssh/id_rsa"
+  default = "~/.ssh/id_rsa"
 }
 # Configure the DigitalOcean Provider
 provider "digitalocean" {
   token = var.api_token
 }
 
-data "digitalocean_ssh_key" "terraform" {
-  name = "Ubunto Empresa"
+resource "digitalocean_ssh_key" "ssh_windows" {
+  name = "ssh_windows"
+  public_key = file("~/.ssh/id_rsa.pub")
 }
 resource "digitalocean_droplet" "web" {
-  image      = "ubuntu-22-10-x64"
-  name       = "web-1"
+  image      = "docker-20-04"
+  name       = "sonar-server"
   region     = "nyc3"
-  size       = "s-1vcpu-1gb"
+  size       = "s-2vcpu-4gb"
   monitoring = true
   ipv6       = true
-  ssh_keys   = [data.digitalocean_ssh_key.terraform.fingerprint]
+  ssh_keys   = [digitalocean_ssh_key.ssh_windows.fingerprint]
   connection {
     host        = self.ipv4_address
     user        = "root"
@@ -35,20 +36,23 @@ resource "digitalocean_droplet" "web" {
     private_key = file(var.pvt_key)
     timeout     = "2m"
   }
+  provisioner "file" {
+    source      = "docker-compose.yaml"
+    destination = "/var/docker-compose.yaml"
+  }
   provisioner "remote-exec" {
     inline = [
-      "export PATH=$PATH:/usr/bin",
-      "sudo apt-get update -y",
-      "sudo DEBIAN_FRONTEND=noninteractive apt-get upgrade -y",
-      "sudo apt install apt-transport-https ca-certificates curl software-properties-common -y",
-      "curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -",
-      "sudo add-apt-repository deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable",
-      "apt-cache policy docker-ce",
-      "sudo apt install docker-ce",
-      "sudo systemctl status docker",
-      "sudo usermod -aG docker ${USER}",
-      "su - ${USER}",
-      "sudo usermod -aG docker username"
+      #start docker containers
+      "cd /var && docker-compose up -d",
+      #security
+      "ufw allow 22",
+      "ufw allow 88",
+      "ufw allow 443",
+      "ufw --force enable",
     ]
   }
+}
+
+output "droplet_ip_address" {
+  value = digitalocean_droplet.web.ipv4_address
 }
