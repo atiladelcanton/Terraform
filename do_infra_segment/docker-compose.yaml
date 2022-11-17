@@ -1,0 +1,30 @@
+version: '3.8'
+services:
+  sonarqube:
+    image: sonarqube:community
+    environment:
+      SONAR_JDBC_URL: jdbc:postgresql://${HOST_DATABASE}:${PORT_DATABASE}/${NAME_DATABASE}
+      SONAR_JDBC_USERNAME: ${USER_DATABASE}
+      SONAR_JDBC_PASSWORD: ${PASSWORD_DATABASE}
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    ports:
+      - "9003:9000"
+    networks:
+      - sonartest
+  
+
+networks:
+  sonartest:
+    driver: bridge
+
+volumes:
+  pgsql:
+    driver: local
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:
+  postgresql:
+  postgresql_data:
