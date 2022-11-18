@@ -12,7 +12,7 @@ variable "ssh_user" {
   default = "root"
 }
 variable "api_token" {
-  default = "dop_v1_a01e6cb8e99e843621bb7865d9c0ed20ee28f219c745862dd6ae04d3ce58d4b3"
+  default = ""
 }
 variable "pvt_key" {
   default = "~/.ssh/id_rsa"
